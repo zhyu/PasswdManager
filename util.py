@@ -63,3 +63,14 @@ def decrypt(key, msg):
     # decrypt
     plain = obj.decrypt(b)
     return plain
+
+def getLastVersion(versionUrl):
+    ver = ''
+    try:
+        f = urllib2.urlopen(versionUrl)
+        s = f.read()
+        f.close()
+        ver = s.split(' ')[1]
+    except:
+        pass
+    return ver
