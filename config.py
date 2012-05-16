@@ -1,9 +1,9 @@
 # -*- coding:utf-8 -*-
 
-# root password
+# master password
 # Default: password
 # MD5: 5f4dcc3b5aa765d61d8327deb882cf99
-ROOT_PWD = ''
+MASTER_PWD = ''
 
 # database path
 DB_PATH = 'data/data.db'
@@ -20,10 +20,10 @@ def setLatestVersion(version):
     global LATEST_VERSION
     LATEST_VERSION = version
     
-def setRootPwd(newPwd):
-    global ROOT_PWD
-    ROOT_PWD = newPwd
+def setMasterPwd(newPwd):
+    global MASTER_PWD
+    MASTER_PWD = newPwd
 
-def getRootPwd():
-    global ROOT_PWD
-    return ROOT_PWD
+def getMasterPwd():
+    global MASTER_PWD
+    return MASTER_PWD
