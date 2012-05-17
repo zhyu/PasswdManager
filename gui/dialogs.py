@@ -4,6 +4,8 @@ import config, myGui, util
 from func import *
 from PyQt4 import QtCore, QtGui
 
+RETRY = 5
+
 class LoginDialog(QtGui.QDialog):
     '''
     dialog about login
@@ -14,7 +16,7 @@ class LoginDialog(QtGui.QDialog):
         self.initUI()
     
     def initUI(self):
-        self.pwdLabel = QtGui.QLabel('Please enter the Master Password: ')
+        self.pwdLabel = QtGui.QLabel()
         self.pwd = QtGui.QLineEdit()
         self.pwd.setEchoMode(QtGui.QLineEdit.Password)
         self.pwd.setFocus()
@@ -31,18 +33,40 @@ class LoginDialog(QtGui.QDialog):
         layout.addRow(cancelBtn, okBtn)
         self.setLayout(layout)
         
+        self.setLabelText()
         self.setWindowTitle('Login')
         self.show()
     
-    def authentication(self):
+    def setLabelText(self):
+        if RETRY == 1:
+            s = 'Please enter the Master Password: ( Last Try!!! )'
+        else :
+            s = 'Please enter the Master Password: ( %d tries left )' % (RETRY)
+        self.pwdLabel.setText(s)
+
+    
+    def authenticate(self):
         mFunc = MasterFunc()
-        inPwd = unicode(self.pwd.text())
-        
-        if mFunc.authentication(inPwd):
-            config.setMasterPwd(inPwd)
-            return True
-        else: 
-            myGui.showErrorDialog(myGui.ERR_LOGIN)
+        var = self.exec_()
+        self.setLabelText()
+        if var:
+            inPwd = unicode(self.pwd.text())
+            
+            if not (mFunc.authenticate(inPwd)):
+                myGui.showErrorDialog(myGui.ERR_LOGIN)
+                global RETRY
+                
+                if RETRY > 1:
+                    RETRY -= 1
+                    self.setLabelText()
+                    self.pwd.clear()
+                    return self.authenticate()
+                else:
+                    return False
+            else:
+                config.setMasterPwd(inPwd)
+                return True
+        else:
             return False
         
 class MsgDialog(QtGui.QDialog):
