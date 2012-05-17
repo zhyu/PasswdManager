@@ -11,8 +11,7 @@ class MainWindow(QtGui.QMainWindow):
         
 def login():
     loginDialog = LoginDialog()
-    loginDialog.exec_()
-    return loginDialog.authentication()
+    return loginDialog.authenticate()
 
 def main():
     app = QtGui.QApplication(sys.argv)
