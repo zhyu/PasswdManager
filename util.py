@@ -10,7 +10,7 @@ import string, random
 MODE = AES.MODE_CBC
 
 def __getKeyObject(key):
-    obj = AES.new(key, MODE)
+    obj = AES.new(md5Encoding(key), MODE)
     return obj
 
 def md5Encoding(msg):
@@ -43,7 +43,7 @@ def encrypt(key, msg):
     obj = __getKeyObject(key)
     
     # encrypt
-    cipher = obj.encrypt(msg)
+    cipher = obj.encrypt(msg*16)
     
     # convert bin to string
     s = binascii.b2a_hex(cipher)
@@ -62,7 +62,7 @@ def decrypt(key, msg):
     
     # decrypt
     plain = obj.decrypt(b)
-    return plain
+    return plain[:len(plain)/16]
 
 def getLastVersion(versionUrl):
     ver = ''
