@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 
-import config, util
+import config, myGui, util
 from func import *
 from PyQt4 import QtCore, QtGui
 
@@ -42,5 +42,28 @@ class LoginDialog(QtGui.QDialog):
             config.setMasterPwd(inPwd)
             return True
         else: 
+            myGui.showErrorDialog(myGui.ERR_LOGIN)
             return False
         
+class MsgDialog(QtGui.QDialog):
+    '''
+    dialog about popup message
+    '''
+    
+    def __init__(self, parent=None, title='Msg', msg=''):
+        super(MsgDialog, self).__init__()
+        self.initUI(title, msg)
+        
+    def initUI(self, title, msg):
+        lb = QtGui.QLabel(msg)
+        okBtn = QtGui.QPushButton('&OK')
+        okBtn.setDefault(True)
+        self.connect(okBtn, QtCore.SIGNAL('clicked()'), QtCore.SLOT('reject()'))
+    
+        layout = QtGui.QFormLayout()
+        layout.addRow(lb)
+        layout.addRow(okBtn)
+        self.setLayout(layout)
+        
+        self.setWindowTitle(title)
+        self.show()
