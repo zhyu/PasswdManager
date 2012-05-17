@@ -35,7 +35,7 @@ class MasterFunc(Func):
         conn.close()
         return res
     
-    def authentication(self, pwd):
+    def authenticate(self, pwd):
         md5String = util.md5Encoding(pwd)
         md5Pwd = self.getMasterPwd()
         return True if md5String == md5Pwd else False
