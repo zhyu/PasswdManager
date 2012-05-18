@@ -3,7 +3,7 @@
 import config, myGui, util, sys
 from func import PwdFunc, TagFunc
 from dialogs import *
-from PyQt4 import QtGui
+from PyQt4 import QtCore, QtGui
 
 class MainWindow(QtGui.QMainWindow):
     '''
@@ -36,16 +36,6 @@ class MainWindow(QtGui.QMainWindow):
         # set the status bar
         self.statusBar().showMessage('Welcome to use Password Manager!')
         
-        self.listwidget = QtGui.QListWidget()
-        self.listwidget.addItem("This\nis\na\nListWidget!")
-        self.treewidget = QtGui.QTreeWidget()
-        self.treewidget.setHeaderLabels(['This','is','a','TreeWidgets!'])
-        
-        splitter = QtGui.QSplitter(self)
-        splitter.addWidget(self.listwidget)
-        splitter.addWidget(self.treewidget)
-        self.setCentralWidget(splitter)        
-        
         self.resize(*myGui.MAIN_WINDOW_SIZE)
         self.move(*myGui.MAIN_WINDOW_POSITION)
         self.setWindowTitle(config.APP_NAME + ' ' + config.VERSION)
@@ -53,50 +43,17 @@ class MainWindow(QtGui.QMainWindow):
         
     def createMenu(self):
         # actions
-        newAccAction = QtGui.QAction(QtGui.QIcon(myGui.ICON_MENU_ADD), '&New Account', self)        
-        newAccAction.setStatusTip('Add new account')
-        newAccAction.triggered.connect(self.onNewAccount)
-        
-        accDetailAction = QtGui.QAction(QtGui.QIcon(myGui.ICON_MENU_DETAIL), 'Account &Details', self)        
-        accDetailAction.setStatusTip('Show detailed information of selected account')
-        accDetailAction.triggered.connect(self.onShowDetail)
-        
-        editAccAction = QtGui.QAction(QtGui.QIcon(myGui.ICON_MENU_EDIT), '&Edit Account', self)        
-        editAccAction.setStatusTip('Edit the selected account')
-        editAccAction.triggered.connect(self.onEditAccount)
-        
-        moveToTrashAction = QtGui.QAction(QtGui.QIcon(myGui.ICON_MENU_TRASH), '&Move to Trash', self)        
-        moveToTrashAction.setStatusTip('Move selected account to trash')
-        moveToTrashAction.triggered.connect(self.onRemove)
-        
-        recoverAction = QtGui.QAction(QtGui.QIcon(myGui.ICON_MENU_RECOVER), 'Re&cover from trash', self)        
-        recoverAction.setStatusTip('Recover Selected Account from Trash')
-        recoverAction.triggered.connect(self.onRecover)
-        
-        removeAction = QtGui.QAction(QtGui.QIcon(myGui.ICON_MENU_REMOVE), '&Remove Selected Account', self)        
-        removeAction.setStatusTip('Remove selected account')
-        removeAction.triggered.connect(self.onRemove)
-        
-        exitAction = QtGui.QAction(QtGui.QIcon(myGui.ICON_MENU_QUIT), 'E&xit', self)
-        exitAction.setShortcut('Ctrl+Q')
-        exitAction.setStatusTip('Exit Password Manager')
-        exitAction.triggered.connect(self.onQuit)
-        
-        masterPwdAction = QtGui.QAction(QtGui.QIcon(myGui.ICON_MENU_MASTERPWD), '&Master Password', self)
-        masterPwdAction.setStatusTip('Managing master password')
-        masterPwdAction.triggered.connect(self.onChgMasterPwd)
-        
-        pwdGenAction = QtGui.QAction(QtGui.QIcon(myGui.ICON_MENU_PWDGEN), 'Password &Generator', self)
-        pwdGenAction.setStatusTip('Generating a random password')
-        pwdGenAction.triggered.connect(self.onPwdGen)
-        
-        newTagAction = QtGui.QAction(QtGui.QIcon(myGui.ICON_MENU_NEWTAG), '&New Tag', self)
-        newTagAction.setStatusTip('Add new tag')
-        newTagAction.triggered.connect(self.onNewTag)
-        
-        emptyTrashAction = QtGui.QAction(QtGui.QIcon(myGui.ICON_MENU_EMPTYTRASH), '&Empty Trash', self)
-        emptyTrashAction.setStatusTip('Empty trash')
-        emptyTrashAction.triggered.connect(self.onEmptyTrash)
+        accMenuData = [ [myGui.ICON_MENU_ADD, '&New Account', 'Add new account', self.onNewAccount],
+                        [myGui.ICON_MENU_DETAIL, 'Account &Details', 'Show detailed information of selected account', self.onShowDetail],
+                        [myGui.ICON_MENU_EDIT, '&Edit Account', 'Edit the selected account', self.onEditAccount],
+                        [myGui.ICON_MENU_TRASH, '&Move to Trash', 'Move selected account to trash', self.onRemove],
+                        [myGui.ICON_MENU_RECOVER, 'Re&cover from trash', 'Recover Selected Account from Trash', self.onRecover],
+                        [myGui.ICON_MENU_REMOVE, '&Remove Selected Account', 'Remove selected account', self.onRemove],
+                        [myGui.ICON_MENU_QUIT, '&Quit', 'Quit Password Manager', self.onQuit] ]
+        settingMenuData = [ [myGui.ICON_MENU_MASTERPWD, '&Master Password', 'Managing master password', self.onChgMasterPwd],
+                            [myGui.ICON_MENU_PWDGEN, 'Password &Generator', 'Generating a random password', self.onPwdGen],
+                            [myGui.ICON_MENU_NEWTAG, '&New Tag', 'Add new tag', self.onNewTag],
+                            [myGui.ICON_MENU_EMPTYTRASH, '&Empty Trash', 'Empty trash', self.onEmptyTrash] ]
         
         aboutAction = QtGui.QAction(QtGui.QIcon(myGui.ICON_MENU_ABOUT), '&About', self)
         aboutAction.setStatusTip('About Password Manager')
@@ -104,28 +61,70 @@ class MainWindow(QtGui.QMainWindow):
         
         # menus
         AccountMenu = self.menuBar().addMenu('&Account')
-        AccountMenu.addAction(newAccAction)
-        AccountMenu.addAction(accDetailAction)
-        AccountMenu.addAction(editAccAction)
-        AccountMenu.addAction(moveToTrashAction)
-        AccountMenu.addAction(recoverAction)
-        AccountMenu.addAction(removeAction)
-        AccountMenu.addAction(exitAction)
+        for icon, name, tip, act in accMenuData:
+            action = QtGui.QAction(QtGui.QIcon(icon), name, self)
+            action.setStatusTip(tip)
+            action.triggered.connect(act)
+            if name == '&Quit': action.setShortcut('Ctrl+Q')
+            AccountMenu.addAction(action)
         
         SettingMenu = self.menuBar().addMenu('&Setting')
-        SettingMenu.addAction(masterPwdAction)
-        SettingMenu.addAction(pwdGenAction)
-        SettingMenu.addAction(newTagAction)
-        SettingMenu.addAction(emptyTrashAction)
+        for icon, name, tip, act in settingMenuData:
+            action = QtGui.QAction(QtGui.QIcon(icon), name, self)
+            action.setStatusTip(tip)
+            action.triggered.connect(act)
+            SettingMenu.addAction(action)
         
         HelpMenu = self.menuBar().addMenu('&Help')
         HelpMenu.addAction(aboutAction)
     
     def createToolbar(self):
-        pass
+        self.toolbar = self.addToolBar('Toolbar')
+        # actions
+        toolbarData= [ [myGui.ICON_TOOLBAR_ADD, 'New Account', 'Add new account', self.onNewAccount],
+                        [myGui.ICON_TOOLBAR_DETAIL, 'Account Details', 'Show detailed information of selected account', self.onShowDetail],
+                        [myGui.ICON_TOOLBAR_EDIT, 'Edit Account', 'Edit the selected account', self.onEditAccount],
+                        [myGui.ICON_TOOLBAR_TRASH, 'Move to Trash', 'Move selected account to trash', self.onRemove],
+                        [myGui.ICON_TOOLBAR_RECOVER, 'Recover from trash', 'Recover Selected Account from Trash', self.onRecover],
+                        [myGui.ICON_TOOLBAR_REMOVE, 'Remove Selected Account', 'Remove selected account', self.onRemove],
+                        [myGui.ICON_TOOLBAR_EMPTYTRASH, 'Empty Trash', 'Empty trash', self.onEmptyTrash],
+                        ['', 'Separator', '', None],
+                        [myGui.ICON_MENU_NEWTAG, 'New Tag', 'Add new tag', self.onNewTag],
+                        [myGui.ICON_TOOLBAR_MASTERPWD, 'Master Password', 'Managing master password', self.onChgMasterPwd],
+                        [myGui.ICON_TOOLBAR_PWDGEN, 'Password &Generator', 'Generating a random password', self.onPwdGen],
+                        ['', 'Separator', '', None],
+                        ['', 'TextAera', '', None],
+                        [myGui.ICON_TOOLBAR_SEARCH, 'Search', 'Search', self.onSearch],
+                        ['', 'Separator', '', None],
+                        [myGui.ICON_TOOLBAR_QUIT, 'Quit', 'Quit Password Manager', self.onQuit] ]
+        for icon, name, tip, act in toolbarData:
+            action = QtGui.QAction(QtGui.QIcon(icon), name, self)
+            if name == 'Separator': self.toolbar.addSeparator()
+            elif name == 'TextAera':
+                self.searchBox = QtGui.QLineEdit()
+                self.connect(self.searchBox, QtCore.SIGNAL('returnPressed()'), self.onSearch)
+                self.toolbar.addWidget(self.searchBox)
+            else:
+                action.setStatusTip(tip)
+                action.triggered.connect(act)
+                self.toolbar.addAction(action)
     
     def createSplitter(self):
-        pass
+        self.listwidget = QtGui.QListWidget()
+        self.listwidget.addItem("This\nis\na\nListWidget!")
+        self.pwdCtrl = QtGui.QTableWidget()
+        self.pwdCtrl.setColumnCount(4)
+        self.pwdCtrl.setHorizontalHeaderLabels(['Tags', 'Title', 'Username', 'Description'])
+        
+        #self.treewidget = QtGui.QTreeWidget()
+        #self.treewidget.setHeaderLabels(['This','is','a','TreeWidgets!'])
+        
+        splitter = QtGui.QSplitter(self)
+        splitter.addWidget(self.listwidget)
+        #splitter.addWidget(self.treewidget)
+        splitter.addWidget(self.pwdCtrl)
+        splitter.setStretchFactor(1, myGui.SPLITTER_STRETCH_FACTOR)
+        self.setCentralWidget(splitter)
     
     # menu handlers
     def onNewAccount(self):
@@ -134,7 +133,7 @@ class MainWindow(QtGui.QMainWindow):
         self.reloadWindow()
     
     def onSearch(self):
-        pass
+        myGui.showAboutDialog()
     
     def onShowDetail(self):
         pass
