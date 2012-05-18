@@ -3,12 +3,8 @@
 import sys, config
 from PyQt4 import QtGui
 from gui.dialogs import LoginDialog
+from gui.mainWindow import MainWindow
 
-class MainWindow(QtGui.QMainWindow):
-    def __init__(self, parent=None):
-        super(MainWindow, self).__init__(parent)
-        self.resize(200, 200)
-        
 def login():
     loginDialog = LoginDialog()
     return loginDialog.authenticate()
