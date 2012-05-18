@@ -4,12 +4,55 @@ import config, dialogs
 from PyQt4.QtGui import QMessageBox
 
 ##################################
+# ICON path properties
+##################################
+# icon root path
+ICON_ROOT='icons/'
+
+ICON_APP_LOGO = ICON_ROOT + 'app.png'
+ICON_APP_ICON = ICON_ROOT + 'app16.png'
+
+# tag icon used in main window
+ICON_TAG_CUSTOM = ICON_ROOT + 'tagM.png'
+ICON_TAG_ALL = ICON_ROOT + 'allTags.png'
+ICON_TAG_TRASH = ICON_ROOT + 'trash.png'
+ICON_TAG_SEARCH = ICON_ROOT + 'result.png'
+ICON_TAG_FAV = ICON_ROOT + 'favs.png'
+
+ICON_TOOLBAR_ADD = ICON_ROOT + 'add.png'
+ICON_TOOLBAR_QUIT = ICON_ROOT + 'exit.png'
+ICON_TOOLBAR_SEARCH = ICON_ROOT + 'search.png'
+ICON_TOOLBAR_REMOVE = ICON_ROOT + 'remove.png'
+ICON_TOOLBAR_TRASH = ICON_TAG_TRASH
+ICON_TOOLBAR_EMPTYTRASH = ICON_ROOT + 'empty.png'
+ICON_TOOLBAR_DETAIL = ICON_ROOT + 'detail.png'
+ICON_TOOLBAR_RECOVER = ICON_ROOT + 'recover.png'
+ICON_TOOLBAR_MASTERPWD = ICON_ROOT + 'masterpwd.png'
+ICON_TOOLBAR_EDIT = ICON_ROOT + 'edit.png'
+ICON_TOOLBAR_PWDGEN =ICON_ROOT + 'pwdgen.png'
+
+ICON_MENU_ADD = ICON_ROOT + 'add16.png'
+ICON_MENU_REMOVE = ICON_ROOT + 'remove16.png'
+ICON_MENU_QUIT = ICON_ROOT + 'exit16.png'
+ICON_MENU_DETAIL = ICON_ROOT + 'detail16.png'
+ICON_MENU_EMPTYTRASH = ICON_ROOT + 'empty16.png'
+ICON_MENU_ABOUT = ICON_ROOT + 'about16.png'
+ICON_MENU_RECOVER = ICON_ROOT + 'recover16.png'
+ICON_MENU_TRASH = ICON_ROOT + 'trash16.png'
+ICON_MENU_PASTE = ICON_ROOT + 'paste16.png'
+ICON_MENU_MASTERPWD = ICON_ROOT + 'masterpwd16.png'
+ICON_MENU_NEWTAG =ICON_ROOT + 'newtag16.png'
+ICON_MENU_DELTAG =ICON_ROOT + 'deltag16.png'
+ICON_MENU_EDIT =ICON_ROOT + 'edit16.png'
+ICON_MENU_PWDGEN =ICON_ROOT + 'pwdgen16.png'
+
+##################################
 # GUI size/position properties
 ##################################
-#Application window size,position
+# Application window size,position
 MAIN_WINDOW_SIZE=(1100,700)
 MAIN_WINDOW_POSITION=(100,80)
-#Dialog position is needed for windows platform.
+# Dialog position is needed for windows platform.
 DIALOG_POSITION=(270,150)
 
 # Long Textbox
@@ -49,7 +92,7 @@ PWD_LIST_NAME = 'pwdListCtrl'
 NAME_TEXTBOX_SEARCH = 'searchTextBox'
 
 ##################################
-#Information messages
+# Information messages
 ##################################
 INFO_CLIPBOARD = """ The password of [%s] has been copied to Clipboard. """
 INFO_PWD_CLIPBOARD = """ The password has been copied to Clipboard. """
@@ -62,7 +105,7 @@ INFO_ACCOUNT_ACTIVE = """[ Active ]"""
 INFO_ACCOUNT_INTRASH = """[ In Trash ]"""
 
 ##################################
-#Confirmation messages
+# Confirmation messages
 ##################################
 CONFIRM_MOVETO_TRASH = """Are you sure to move the account [%s]?"""
 CONFIRM_COMPLETE_REMOVE = """Are you sure to PERMANENTLY DELETE the account [%s]?"""
@@ -71,7 +114,7 @@ CONFIRM_REMOVE_TAG = """Are you sure to remove the tag [%s]?"""
 CONFIRM_REMOVE_USEDTAG = """Removing tag [%s] will NOT remove related accounts. Continue to remove Tag?"""
 
 ##################################
-#Error messages
+# Error messages
 ##################################
 ERR_LOGIN = 'Password is not correct!'
 ERR_TITLE_EMPTY='Title cannot be empty!'
@@ -104,5 +147,7 @@ def showInfoDialog(msg, name=''):
         QMessageBox.information(None, 'Infomation', msg % name, QMessageBox.Ok)
     
 def showAboutDialog():
-    description = """<h1><font size=500>Password Manager</font></h1>\n is a simple password management tool written in python and qt """
-    QMessageBox.about(None, 'About', description)
+    header = """<h1><img src=""" + ICON_APP_LOGO + """></img>   Password Manager</h1>"""
+    description = """ a simple password management tool written in python and qt """
+    cprt = """ <p align="right">(C) 2012 zhyu</p> """
+    QMessageBox.about(None, 'About', header+description+cprt)
