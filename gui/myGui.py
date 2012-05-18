@@ -75,13 +75,8 @@ SIZE_DIALOG_PWDGEN = (520, 360)
 # splitterwindow min pane size
 SPLITTERWINDOW_MIN_SIZE = 100 
 
-##################################
-# GUI Position properties
-##################################
-
-
-# splitterwindow Sash Position
-SPLITTERWINDOW_SASH_POS = 200 
+# splitter stretch factor
+SPLITTER_STRETCH_FACTOR = 200 
 
 
 ##################################
@@ -90,6 +85,39 @@ SPLITTERWINDOW_SASH_POS = 200
 TAG_LIST_NAME = 'tagListCtrl'
 PWD_LIST_NAME = 'pwdListCtrl'
 NAME_TEXTBOX_SEARCH = 'searchTextBox'
+
+##################################
+# special tag id
+##################################
+
+ID_TAG_FAV = 0
+ID_TAG_ALL = -3
+ID_TAG_SEARCH = -2
+ID_TAG_TRASH = -1
+
+ID_TOOLBAR_DETAIL   = 7677 
+ID_TOOLBAR_REMOVE   = 7676
+ID_TOOLBAR_TRASH    = 7675
+ID_TOOLBAR_RECOVER  = 7674
+ID_TOOLBAR_EDIT     = 7673
+
+ID_MENU_DETAIL      = 7672
+ID_MENU_ADD         = 7671
+ID_MENU_REMOVE      = 7670
+ID_MENU_TRASH       = 7669
+ID_MENU_RECOVER     = 7668
+ID_MENU_EDIT        = 7667
+ID_MENU_QUIT        = 7666
+
+#enable/disable IDs
+IDS_ENDISABLE_MENU = (ID_MENU_DETAIL,ID_MENU_TRASH,ID_MENU_EDIT)
+
+IDS_ENDISABLE_TOOLBAR = (ID_TOOLBAR_DETAIL,
+                         ID_TOOLBAR_TRASH,ID_TOOLBAR_EDIT)
+
+IDS_TRASHTAG_MENU = (ID_MENU_REMOVE,ID_MENU_RECOVER)
+IDS_TRASHTAG_TOOLBAR = (ID_TOOLBAR_REMOVE,ID_TOOLBAR_RECOVER)
+
 
 ##################################
 # Information messages
