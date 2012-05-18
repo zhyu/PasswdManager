@@ -35,6 +35,7 @@ class LoginDialog(QtGui.QDialog):
         
         self.setLabelText()
         self.setWindowTitle('Login')
+        self.setWindowIcon(QtGui.QIcon(myGui.ICON_APP_ICON))
         self.show()
     
     def setLabelText(self):
@@ -91,3 +92,115 @@ class MsgDialog(QtGui.QDialog):
         
         self.setWindowTitle(title)
         self.show()
+
+class AccountDetailDialog(QtGui.QDialog):
+    '''
+    show account detail (read only)
+    '''
+    pass
+
+class EditAccountDialog(QtGui.QDialog):
+    pass
+
+class NewPwdDialog(QtGui.QDialog):
+    '''
+    dialog about add new password
+    '''
+    
+    def __init__(self, parent):
+        super(NewPwdDialog, self).__init__()
+        self.initUI()
+    
+    def initUI(self):
+        pass
+    
+    def loadTags(self):
+        pass
+    
+    def doSave(self):
+        pass
+
+class ChgMasterPwdDialog(QtGui.QDialog):
+    pass
+
+class PwdGenDialog(QtGui.QDialog):
+    pass
+
+class NewTagDialog(QtGui.QDialog):
+    def __init__(self, parent):
+        super(NewTagDialog, self).__init__()
+        self.initUI()
+    
+    def initUI(self):
+        lb = QtGui.QLabel('The name of new tag:')
+        self.tag = QtGui.QLineEdit()
+        
+        okBtn = QtGui.QPushButton('&OK')
+        cancelBtn = QtGui.QPushButton('&Cancel')
+        okBtn.setDefault(True)
+        self.connect(okBtn, QtCore.SIGNAL('clicked()'), QtCore.SLOT('accept()'))
+        self.connect(cancelBtn, QtCore.SIGNAL('clicked()'), QtCore.SLOT('reject()'))
+        
+        layout = QtGui.QFormLayout()
+        layout.addRow(lb, self.tag)
+        layout.addRow(cancelBtn, okBtn)
+        self.setLayout(layout)
+        
+        self.setWindowTitle('Add New Tag')
+        self.setWindowIcon(QtGui.QIcon(myGui.ICON_APP_ICON))
+        self.show()
+    
+    def onSave(self):
+        tagFunc = TagFunc()
+        var = self.exec_()
+        if var:
+            tagName = unicode(self.tag.text())
+            if not tagName:
+                myGui.showErrorDialog(myGui.ERR_NEWTAG_EMPTY)
+                self.onSave()
+            elif not TagFunc.isTagNameValid(tagName):
+                myGui.showErrorDialog(myGui.ERR_NEWTAG_UNIQUE)
+                self.onSave()
+            else:
+                tagFunc.addNewTag(tagName)
+                   
+
+class EditTagDialog(QtGui.QDialog):
+    def __init__(self, parent, tagID):
+        super(EditTagDialog, self).__init__()
+        self.initUI()
+        
+    def initUI(self):
+        self.tagID = tagID
+        self.tagFunc = TagFunc()
+        tag = self.tagFunc.getTagByID(tagID)
+        lb = QtGui.QLabel('The new name of the tag:')
+        self.tag = QtGui.QLineEdit(tag.name)
+        
+        okBtn = QtGui.QPushButton('&OK')
+        cancelBtn = QtGui.QPushButton('&Cancel')
+        okBtn.setDefault(True)
+        self.connect(okBtn, QtCore.SIGNAL('clicked()'), QtCore.SLOT('accept()'))
+        self.connect(cancelBtn, QtCore.SIGNAL('clicked()'), QtCore.SLOT('reject()'))
+        
+        layout = QtGui.QFormLayout()
+        layout.addRow(lb, self.tag)
+        layout.addRow(cancelBtn, okBtn)
+        self.setLayout(layout)
+        
+        self.setWindowTitle('Edit Tag')
+        self.setWindowIcon(QtGui.QIcon(myGui.ICON_APP_ICON))
+        self.show()
+    
+    def onSave(self):
+        var = self.exec_()
+        if var:
+            tagName = unicode(self.tag.text())
+            if not tagName:
+                myGui.showErrorDialog(myGui.ERR_NEWTAG_EMPTY)
+                self.onSave()
+            elif not TagFunc.isTagNameValid(tagName, self.tagID):
+                myGui.showErrorDialog(myGui.ERR_NEWTAG_UNIQUE)
+                self.onSave()
+            else:
+                self.tagFunc.editTag(self.tagID, tagName)
