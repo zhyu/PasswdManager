@@ -110,21 +110,25 @@ class MainWindow(QtGui.QMainWindow):
                 self.toolbar.addAction(action)
     
     def createSplitter(self):
-        self.listwidget = QtGui.QListWidget()
-        self.listwidget.addItem("This\nis\na\nListWidget!")
-        self.pwdCtrl = QtGui.QTableWidget()
-        self.pwdCtrl.setColumnCount(4)
-        self.pwdCtrl.setHorizontalHeaderLabels(['Tags', 'Title', 'Username', 'Description'])
+        #self.listwidget = QtGui.QListWidget()
+        #self.listwidget.addItem("This\nis\na\nListWidget!")
+        #self.pwdCtrl = QtGui.QTableWidget()
+        #self.pwdCtrl.setColumnCount(4)
+        #self.pwdCtrl.setHorizontalHeaderLabels(['Tags', 'Title', 'Username', 'Description'])
         
         #self.treewidget = QtGui.QTreeWidget()
         #self.treewidget.setHeaderLabels(['This','is','a','TreeWidgets!'])
         
         splitter = QtGui.QSplitter(self)
-        splitter.addWidget(self.listwidget)
-        #splitter.addWidget(self.treewidget)
+        self.tagCtrl = TagList(self)
+        self.pwdCtrl = QtGui.QTableWidget()
+        self.pwdCtrl.setColumnCount(4)
+        self.pwdCtrl.setHorizontalHeaderLabels(['Tags', 'Title', 'Username', 'Description'])
+        splitter.addWidget(self.tagCtrl)
         splitter.addWidget(self.pwdCtrl)
         splitter.setStretchFactor(1, myGui.SPLITTER_STRETCH_FACTOR)
         self.setCentralWidget(splitter)
+        #splitter.addWidget(self.treewidget)
     
     # menu handlers
     def onNewAccount(self):
@@ -162,9 +166,6 @@ class MainWindow(QtGui.QMainWindow):
     def onChgMasterPwd(self):
         pass
     
-    def onTagMng(self):
-        pass
-    
     def onNewTag(self):
         newTagDlg = NewTagDialog(self)
         newTagDlg.onSave()
@@ -179,16 +180,91 @@ class MainWindow(QtGui.QMainWindow):
         pass
     
     def onRemoveTag(self):
-        pass
+        tag = self.tagFunc.getTagByID(self.selectedTagID)
+        cnt = self.tagFunc.getPwdCntByTagID(tag.id)
+        if cnt > 0:
+            if myGui.showConfirmationDialog(myGui.CONFIRM_REMOVE_USEDTAG, tag.name) == QtGui.QMessageBox.Ok:
+                self.tagFunc.removeTagInUse(tag.id)
+                self.reloadWindow()
+        elif myGui.showConfirmationDialog(myGui.CONFIRM_REMOVE_TAG, tag.name) == QtGui.QMessageBox.Ok:
+            self.tagFunc.removeTag(tag.id)
+            self.reloadWindow()
     
     def onPwdGen(self):
-        pass
+        pwdGenDlg = PwdGenDialog(self)
+        pwdGenDlg.generatePwd()
     
     def reloadWindow(self, selectedTag=None):
-        pass
+        if not selectedTag:
+            self.tagCtrl.loadTags()
+        else:
+            self.tagCtrl.loadTags(selectedTag)
     
 class TagList(QtGui.QListWidget):
-    pass
+    def __init__(self, parent=None):
+        super(TagList, self).__init__()
+        self.parent = parent
+        self.initUI()
+    
+    def initUI(self):
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.tagMenu)
+        self.connect(self, QtCore.SIGNAL('currentRowChanged(int)'), self.onSelect)
+        self.loadTags()
+    
+    def tagMenu(self):
+        self.menu = QtGui.QMenu()
+        menuData = [[myGui.ICON_MENU_NEWTAG, 'Add new tag', 'Add new tag', self.parent.onNewTag],
+                    [myGui.ICON_MENU_EDIT, 'Edit tag', 'Edit tag', self.parent.onEditTag],
+                    [myGui.ICON_MENU_DELTAG, 'Delete tag', 'Delete tag', self.parent.onRemoveTag] ]
+        cur = self.currentItem()
+        popup = menuData[:1] if (not cur or cur.type()<0) else menuData
+        for icon, name, tip, act in popup:
+            action = QtGui.QAction(QtGui.QIcon(icon), name, self)
+            action.setStatusTip(tip)
+            action.triggered.connect(act)
+            self.menu.addAction(action)
+        self.menu.exec_(QtGui.QCursor.pos())
+        
+    
+    def loadTags(self, selectedID=myGui.ID_TAG_ALL):
+        pwdFunc = PwdFunc()
+        tagFunc = TagFunc()
+        
+        allPwdCnt = pwdFunc.getAllPwdCnt()
+        trashPwdCnt = pwdFunc.getPwdCntInTrash()
+        tagList = tagFunc.getAllTags()
+        self.clear()
+        
+        idxData = []
+        for tag in tagList:
+            idxData.append(tag.id)
+            cnt = tagFunc.getPwdCntByTagID(tag.id)
+            item = QtGui.QListWidgetItem(QtGui.QIcon(myGui.ICON_TAG_CUSTOM), '%s (%d)' % (tag.name, cnt), None, tag.id)
+            item.setSizeHint(QtCore.QSize(60, 32))
+            self.addItem(item)
+
+        tagAdv = [ QtGui.QListWidgetItem(QtGui.QIcon(myGui.ICON_TAG_ALL), 'All (%d)' % allPwdCnt, None, myGui.ID_TAG_ALL),
+                   QtGui.QListWidgetItem(QtGui.QIcon(myGui.ICON_TAG_SEARCH), 'Result (%d)' % len(self.parent.searchResult), None, myGui.ID_TAG_SEARCH),
+                   QtGui.QListWidgetItem(QtGui.QIcon(myGui.ICON_TAG_TRASH), 'Trash (%d)' % trashPwdCnt, None, myGui.ID_TAG_TRASH) ]
+        for tagItem in tagAdv:
+            tagItem.setSizeHint(QtCore.QSize(60, 32))
+            self.addItem(tagItem)
+        idxData.extend([-1, -2, -3])
+        self.setCurrentRow(idxData.index(selectedID))
+        self.show()
+        
+    def onSelect(self):
+        cur = self.currentItem()
+        tagID = cur.type() if cur else myGui.ID_TAG_ALL
+        self.parent.selectedTagID = tagID
+        pwdFunc = PwdFunc()
+        
+        if tagID == myGui.ID_TAG_SEARCH:
+            pass
+        else:
+            pass
+        pass
 
 class PwdList(QtGui.QTreeWidget):
     pass
