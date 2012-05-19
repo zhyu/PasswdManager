@@ -7,7 +7,7 @@ from PyQt4.QtGui import QMessageBox
 # ICON path properties
 ##################################
 # icon root path
-ICON_ROOT='icons/'
+ICON_ROOT='gui/icons/'
 
 ICON_APP_LOGO = ICON_ROOT + 'app.png'
 ICON_APP_ICON = ICON_ROOT + 'app16.png'
@@ -90,10 +90,9 @@ NAME_TEXTBOX_SEARCH = 'searchTextBox'
 # special tag id
 ##################################
 
-ID_TAG_FAV = 0
-ID_TAG_ALL = -3
+ID_TAG_ALL = -1
 ID_TAG_SEARCH = -2
-ID_TAG_TRASH = -1
+ID_TAG_TRASH = -3
 
 ID_TOOLBAR_DETAIL   = 7677 
 ID_TOOLBAR_REMOVE   = 7676
