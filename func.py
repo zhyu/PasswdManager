@@ -1,8 +1,8 @@
 # -*- coding:utf-8 -*-
 
 from dao import *
-import config
-import util
+from gui import myGui
+import config, util
 import datetime
 
 class Func:
@@ -121,9 +121,9 @@ class PwdFunc(Func):
         conn = self.getConnection()
         pDao = PwdDao(conn)
         res = []
-        if tagID == TAG_ALL: # all selected
+        if tagID == myGui.ID_TAG_ALL: # all selected
             res = pDao.getAllPwd()
-        elif tagID == TAG_TRASH: # trash selected
+        elif tagID == myGui.ID_TAG_TRASH: # trash selected
             res = pDao.getPwdListInTrash()
         else:
             res = pDao.getPwdListFromTagID(tagID)
