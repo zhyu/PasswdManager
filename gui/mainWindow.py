@@ -167,13 +167,13 @@ class MainWindow(QtGui.QMainWindow):
         pass
     
     def onNewTag(self):
-        newTagDlg = NewTagDialog(self)
+        newTagDlg = NewTagDlg(self)
         newTagDlg.onSave()
         self.reloadWindow()
         newTagDlg.destroy()
     
     def onEditTag(self):
-        editTagDlg = EditTagDialog(self, self.selectedTagID)
+        editTagDlg = EditTagDlg(self, self.selectedTagID)
         editTagDlg.onSave()
         self.reloadWindow()
         editTagDlg.destroy()
@@ -191,7 +191,7 @@ class MainWindow(QtGui.QMainWindow):
             self.reloadWindow()
     
     def onPwdGen(self):
-        pwdGenDlg = PwdGenDialog(self)
+        pwdGenDlg = PwdGenDlg(self)
         pwdGenDlg.generatePwd()
     
     def reloadWindow(self, selectedTag=None):
