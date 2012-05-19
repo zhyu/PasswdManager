@@ -3,40 +3,16 @@
 import config, myGui, util
 from func import *
 from PyQt4 import QtCore, QtGui
+from PyQt4.QtCore import pyqtSignature
+from Ui_PwdGenDlg import Ui_PwnGenDlg
+from Ui_LoginDlg import Ui_LoginDlg
 
 RETRY = 5
 
-class LoginDialog(QtGui.QDialog):
-    '''
-    dialog about login
-    '''
-    
-    def __init__(self, parent=None):
-        super(LoginDialog, self).__init__()
-        self.initUI()
-    
-    def initUI(self):
-        self.pwdLabel = QtGui.QLabel()
-        self.pwd = QtGui.QLineEdit()
-        self.pwd.setEchoMode(QtGui.QLineEdit.Password)
-        self.pwd.setFocus()
-        
-        okBtn = QtGui.QPushButton('&OK')
-        cancelBtn = QtGui.QPushButton('&Exit')
-        okBtn.setDefault(True)
-        self.connect(okBtn, QtCore.SIGNAL('clicked()'), QtCore.SLOT('accept()'))
-        self.connect(cancelBtn, QtCore.SIGNAL('clicked()'), QtCore.SLOT('reject()'))
-        
-        layout = QtGui.QFormLayout()
-        layout.addRow(self.pwdLabel)
-        layout.addRow(self.pwd)
-        layout.addRow(cancelBtn, okBtn)
-        self.setLayout(layout)
-        
-        self.setLabelText()
-        self.setWindowTitle('Login')
-        self.setWindowIcon(QtGui.QIcon(myGui.ICON_APP_ICON))
-        self.show()
+class LoginDlg(QtGui.QDialog, Ui_LoginDlg):
+    def __init__(self, parent = None):
+        QtGui.QDialog.__init__(self, parent)
+        self.setupUi(self)
     
     def setLabelText(self):
         if RETRY == 1:
@@ -44,12 +20,12 @@ class LoginDialog(QtGui.QDialog):
         else :
             s = 'Please enter the Master Password: ( %d tries left )' % (RETRY)
         self.pwdLabel.setText(s)
-
     
     def authenticate(self):
         mFunc = MasterFunc()
-        var = self.exec_()
         self.setLabelText()
+        self.pwd.setFocus()
+        var = self.exec_()
         if var:
             inPwd = unicode(self.pwd.text())
             
@@ -70,29 +46,6 @@ class LoginDialog(QtGui.QDialog):
         else:
             return False
         
-class MsgDialog(QtGui.QDialog):
-    '''
-    dialog about popup message
-    '''
-    
-    def __init__(self, parent=None, title='Msg', msg=''):
-        super(MsgDialog, self).__init__()
-        self.initUI(title, msg)
-        
-    def initUI(self, title, msg):
-        lb = QtGui.QLabel(msg)
-        okBtn = QtGui.QPushButton('&OK')
-        okBtn.setDefault(True)
-        self.connect(okBtn, QtCore.SIGNAL('clicked()'), QtCore.SLOT('reject()'))
-    
-        layout = QtGui.QFormLayout()
-        layout.addRow(lb)
-        layout.addRow(okBtn)
-        self.setLayout(layout)
-        
-        self.setWindowTitle(title)
-        self.show()
-
 class AccountDetailDialog(QtGui.QDialog):
     '''
     show account detail (read only)
@@ -123,12 +76,61 @@ class NewPwdDialog(QtGui.QDialog):
 class ChgMasterPwdDialog(QtGui.QDialog):
     pass
 
-class PwdGenDialog(QtGui.QDialog):
-    pass
+class PwdGenDialog(QtGui.QDialog, Ui_PwnGenDlg):
+    def __init__(self, parent):
+        QtGui.QDialog.__init__(self, parent)
+        self.parent = parent
+        self.setupUi(self)
+    
+    @pyqtSignature("")
+    def on_cpBtn_clicked(self):
+        self.copyToClipboard()
+    
+    @pyqtSignature("")
+    def on_genBtn_clicked(self):
+        self.doGenerate()
+    
+    def doGenerate(self):
+        patternList = []
+        if self.low.isChecked():
+            patternList.append('lower')
+        if self.up.isChecked():
+            patternList.append('upper')
+        if self.num.isChecked():
+            patternList.append('number')
+        if self.punc.isChecked():
+            patternList.append('punc')
+        if len(patternList) == 0:
+            myGui.showErrorDialog(myGui.ERR_PWD_EMPTYPATTERN)
+        else:
+            try:
+                length = int(unicode(self.leng.text()))
+                if length > 0:
+                    self.pwd.setText(util.getRandomString(length, patternList))
+                    self.genBtn.setText('Re&generate')
+                    self.cpBtn.setEnabled(True)
+                else:
+                    myGui.showErrorDialog(myGui.ERR_PWD_LEN)
+            except ValueError:
+                myGui.showErrorDialog(myGui.ERR_PWD_LEN)
+            
+    
+    def copyToClipboard(self):
+        clipboard = QtGui.QApplication.clipboard()
+        if len(str(self.pwd.text()).strip()) > 0:
+            txt = self.pwd.text()
+            clipboard.setText(txt)
+            myGui.showInfoDialog(myGui.INFO_PWD_CLIPBOARD)
+        else:
+            myGui.showInfoDialog(myGui.ERR_PWD_COPY)
+    
+    def generatePwd(self):
+        self.exec_()
 
 class NewTagDialog(QtGui.QDialog):
     def __init__(self, parent):
         super(NewTagDialog, self).__init__()
+        self.parent = parent
         self.initUI()
     
     def initUI(self):
@@ -158,7 +160,7 @@ class NewTagDialog(QtGui.QDialog):
             if not tagName:
                 myGui.showErrorDialog(myGui.ERR_NEWTAG_EMPTY)
                 self.onSave()
-            elif not TagFunc.isTagNameValid(tagName):
+            elif not tagFunc.isTagNameValid(tagName):
                 myGui.showErrorDialog(myGui.ERR_NEWTAG_UNIQUE)
                 self.onSave()
             else:
@@ -168,12 +170,12 @@ class NewTagDialog(QtGui.QDialog):
 class EditTagDialog(QtGui.QDialog):
     def __init__(self, parent, tagID):
         super(EditTagDialog, self).__init__()
+        self.tagID = tagID
         self.initUI()
         
     def initUI(self):
-        self.tagID = tagID
         self.tagFunc = TagFunc()
-        tag = self.tagFunc.getTagByID(tagID)
+        tag = self.tagFunc.getTagByID(self.tagID)
         lb = QtGui.QLabel('The new name of the tag:')
         self.tag = QtGui.QLineEdit(tag.name)
         
@@ -199,7 +201,7 @@ class EditTagDialog(QtGui.QDialog):
             if not tagName:
                 myGui.showErrorDialog(myGui.ERR_NEWTAG_EMPTY)
                 self.onSave()
-            elif not TagFunc.isTagNameValid(tagName, self.tagID):
+            elif not self.tagFunc.isTagNameValid(tagName, self.tagID):
                 myGui.showErrorDialog(myGui.ERR_NEWTAG_UNIQUE)
                 self.onSave()
             else:
