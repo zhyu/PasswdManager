@@ -102,6 +102,7 @@ class MainWindow(QtGui.QMainWindow):
             if name == 'Separator': self.toolbar.addSeparator()
             elif name == 'TextAera':
                 self.searchBox = QtGui.QLineEdit()
+                self.searchBox.setFixedWidth(300)
                 self.connect(self.searchBox, QtCore.SIGNAL('returnPressed()'), self.onSearch)
                 self.toolbar.addWidget(self.searchBox)
             else:
@@ -120,10 +121,8 @@ class MainWindow(QtGui.QMainWindow):
         #self.treewidget.setHeaderLabels(['This','is','a','TreeWidgets!'])
         
         splitter = QtGui.QSplitter(self)
+        self.pwdCtrl = PwdList(self)
         self.tagCtrl = TagList(self)
-        self.pwdCtrl = QtGui.QTableWidget()
-        self.pwdCtrl.setColumnCount(4)
-        self.pwdCtrl.setHorizontalHeaderLabels(['Tags', 'Title', 'Username', 'Description'])
         splitter.addWidget(self.tagCtrl)
         splitter.addWidget(self.pwdCtrl)
         splitter.setStretchFactor(1, myGui.SPLITTER_STRETCH_FACTOR)
@@ -201,7 +200,7 @@ class MainWindow(QtGui.QMainWindow):
             self.tagCtrl.loadTags(selectedTag)
     
 class TagList(QtGui.QListWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent):
         super(TagList, self).__init__()
         self.parent = parent
         self.initUI()
@@ -209,7 +208,9 @@ class TagList(QtGui.QListWidget):
     def initUI(self):
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.tagMenu)
-        self.connect(self, QtCore.SIGNAL('currentRowChanged(int)'), self.onSelect)
+        #self.connect(self, QtCore.SIGNAL('currentRowChanged(int)'), self.onSelect)
+        #QtGui.QListWidget.itemClicked
+        self.connect(self, QtCore.SIGNAL('itemClicked()'), self.onSelect)
         self.loadTags()
     
     def tagMenu(self):
@@ -217,7 +218,9 @@ class TagList(QtGui.QListWidget):
         menuData = [[myGui.ICON_MENU_NEWTAG, 'Add new tag', 'Add new tag', self.parent.onNewTag],
                     [myGui.ICON_MENU_EDIT, 'Edit tag', 'Edit tag', self.parent.onEditTag],
                     [myGui.ICON_MENU_DELTAG, 'Delete tag', 'Delete tag', self.parent.onRemoveTag] ]
-        cur = self.currentItem()
+        cur = self.itemAt(self.mapFromGlobal(QtGui.QCursor.pos()))
+        #cnt = self.count()
+        #popup = menuData[:1] if cur + 3 <=cnt else menuData
         popup = menuData[:1] if (not cur or cur.type()<0) else menuData
         for icon, name, tip, act in popup:
             action = QtGui.QAction(QtGui.QIcon(icon), name, self)
@@ -260,11 +263,38 @@ class TagList(QtGui.QListWidget):
         self.parent.selectedTagID = tagID
         pwdFunc = PwdFunc()
         
+        pwdCtrl = self.parent.pwdCtrl
         if tagID == myGui.ID_TAG_SEARCH:
-            pass
+            pwdCtrl.loadSearchResult()
         else:
-            pass
-        pass
+            self.parent.pwdList = pwdFunc.getPwdListFromTagID(tagID)
+            pwdCtrl.loadPwd()
 
-class PwdList(QtGui.QTreeWidget):
-    pass
+class PwdList(QtGui.QTableWidget):
+    def __init__(self, parent=None):
+        super(QtGui.QTableWidget, self).__init__()
+        self.parent = parent
+        self.initUI()
+    
+    def initUI(self):
+        self.loadPwd()
+        
+    def loadSearchResult(self):
+        pass
+    
+    def loadPwd(self):
+        self.clear()
+        self.setColumnCount(4)
+        self.setHorizontalHeaderLabels(['Tags', 'Title', 'Username', 'Description'])
+        wid = [200, 150, 200, 250]
+        for cid, wid in enumerate(wid): self.setColumnWidth(cid, wid)
+        
+        tagFunc = TagFunc()
+        for idx, pwd in enumerate(self.parent.pwdList):
+            tags = pwd.tags
+            tagStr = tagFunc.getTagNameString(tags)
+            self.setItem(idx, 0, QtGui.QTableWidgetItem(tagStr))
+            self.setItem(idx, 1, QtGui.QTableWidgetItem(pwd.title))
+            self.setItem(idx, 2, QtGui.QTableWidgetItem(pwd.username))
+            self.setItem(idx, 3, QtGui.QTableWidgetItem(pwd.description))
+        
