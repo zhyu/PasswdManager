@@ -2,12 +2,12 @@
 
 import sys, config
 from PyQt4 import QtGui
-from gui.dialogs import LoginDialog
+from gui.dialogs import LoginDlg
 from gui.mainWindow import MainWindow
 
 def login():
-    loginDialog = LoginDialog()
-    return loginDialog.authenticate()
+    loginDlg = LoginDlg()
+    return loginDlg.authenticate()
 
 def main():
     app = QtGui.QApplication(sys.argv)
