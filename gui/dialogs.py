@@ -6,6 +6,8 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSignature
 from Ui_PwdGenDlg import Ui_PwnGenDlg
 from Ui_LoginDlg import Ui_LoginDlg
+from Ui_NewTagDlg import Ui_NewTagDlg
+from Ui_EditTagDlg import Ui_EditTagDlg
 
 RETRY = 5
 
@@ -76,7 +78,7 @@ class NewPwdDialog(QtGui.QDialog):
 class ChgMasterPwdDialog(QtGui.QDialog):
     pass
 
-class PwdGenDialog(QtGui.QDialog, Ui_PwnGenDlg):
+class PwdGenDlg(QtGui.QDialog, Ui_PwnGenDlg):
     def __init__(self, parent):
         QtGui.QDialog.__init__(self, parent)
         self.parent = parent
@@ -127,33 +129,14 @@ class PwdGenDialog(QtGui.QDialog, Ui_PwnGenDlg):
     def generatePwd(self):
         self.exec_()
 
-class NewTagDialog(QtGui.QDialog):
-    def __init__(self, parent):
-        super(NewTagDialog, self).__init__()
-        self.parent = parent
-        self.initUI()
-    
-    def initUI(self):
-        lb = QtGui.QLabel('The name of new tag:')
-        self.tag = QtGui.QLineEdit()
-        
-        okBtn = QtGui.QPushButton('&OK')
-        cancelBtn = QtGui.QPushButton('&Cancel')
-        okBtn.setDefault(True)
-        self.connect(okBtn, QtCore.SIGNAL('clicked()'), QtCore.SLOT('accept()'))
-        self.connect(cancelBtn, QtCore.SIGNAL('clicked()'), QtCore.SLOT('reject()'))
-        
-        layout = QtGui.QFormLayout()
-        layout.addRow(lb, self.tag)
-        layout.addRow(cancelBtn, okBtn)
-        self.setLayout(layout)
-        
-        self.setWindowTitle('Add New Tag')
-        self.setWindowIcon(QtGui.QIcon(myGui.ICON_APP_ICON))
-        self.show()
+class NewTagDlg(QtGui.QDialog, Ui_NewTagDlg):
+    def __init__(self, parent = None):
+        QtGui.QDialog.__init__(self, parent)
+        self.setupUi(self)    
     
     def onSave(self):
         tagFunc = TagFunc()
+        self.tag.setFocus()
         var = self.exec_()
         if var:
             tagName = unicode(self.tag.text())
@@ -167,32 +150,15 @@ class NewTagDialog(QtGui.QDialog):
                 tagFunc.addNewTag(tagName)
                    
 
-class EditTagDialog(QtGui.QDialog):
+class EditTagDlg(QtGui.QDialog, Ui_EditTagDlg):
     def __init__(self, parent, tagID):
-        super(EditTagDialog, self).__init__()
+        QtGui.QDialog.__init__(self, parent)
         self.tagID = tagID
-        self.initUI()
-        
-    def initUI(self):
+        self.setupUi(self)        
         self.tagFunc = TagFunc()
         tag = self.tagFunc.getTagByID(self.tagID)
-        lb = QtGui.QLabel('The new name of the tag:')
-        self.tag = QtGui.QLineEdit(tag.name)
-        
-        okBtn = QtGui.QPushButton('&OK')
-        cancelBtn = QtGui.QPushButton('&Cancel')
-        okBtn.setDefault(True)
-        self.connect(okBtn, QtCore.SIGNAL('clicked()'), QtCore.SLOT('accept()'))
-        self.connect(cancelBtn, QtCore.SIGNAL('clicked()'), QtCore.SLOT('reject()'))
-        
-        layout = QtGui.QFormLayout()
-        layout.addRow(lb, self.tag)
-        layout.addRow(cancelBtn, okBtn)
-        self.setLayout(layout)
-        
-        self.setWindowTitle('Edit Tag')
-        self.setWindowIcon(QtGui.QIcon(myGui.ICON_APP_ICON))
-        self.show()
+        self.tag.setText(tag.name)
+        self.tag.setFocus()
     
     def onSave(self):
         var = self.exec_()
