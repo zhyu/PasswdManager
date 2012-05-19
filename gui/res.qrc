@@ -1,0 +1,37 @@
+<RCC>
+  <qresource prefix="icons">
+    <file>icons/about16.png</file>
+    <file>icons/add.png</file>
+    <file>icons/add16.png</file>
+    <file>icons/allTags.png</file>
+    <file>icons/app.png</file>
+    <file>icons/app16.png</file>
+    <file>icons/deltag16.png</file>
+    <file>icons/detail.png</file>
+    <file>icons/detail16.png</file>
+    <file>icons/edit.png</file>
+    <file>icons/edit16.png</file>
+    <file>icons/empty.png</file>
+    <file>icons/empty16.png</file>
+    <file>icons/exit.png</file>
+    <file>icons/exit16.png</file>
+    <file>icons/exits.png</file>
+    <file>icons/favs.png</file>
+    <file>icons/masterpwd.png</file>
+    <file>icons/masterpwd16.png</file>
+    <file>icons/newtag16.png</file>
+    <file>icons/paste.png</file>
+    <file>icons/paste16.png</file>
+    <file>icons/pwdgen.png</file>
+    <file>icons/pwdgen16.png</file>
+    <file>icons/recover.png</file>
+    <file>icons/recover16.png</file>
+    <file>icons/remove.png</file>
+    <file>icons/remove16.png</file>
+    <file>icons/result.png</file>
+    <file>icons/search.png</file>
+    <file>icons/tagM.png</file>
+    <file>icons/trash.png</file>
+    <file>icons/trash16.png</file>
+  </qresource>
+</RCC>
