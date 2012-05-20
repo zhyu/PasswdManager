@@ -1,9 +1,13 @@
 # -*- coding:utf-8 -*-
+#splitter.addWidget(self.treewidget)
 
 import config, myGui, util, sys
 from func import PwdFunc, TagFunc
 from dialogs import *
 from PyQt4 import QtCore, QtGui
+
+PWDLIST = []
+SEARCHRESULT = []
 
 class MainWindow(QtGui.QMainWindow):
     '''
@@ -12,10 +16,6 @@ class MainWindow(QtGui.QMainWindow):
     
     def __init__(self, parent=None):
         super(MainWindow, self).__init__()
-        
-        # value for the listCtrl
-        self.pwdList = []
-        self.searchResult = []
         
         # selected accountID/tagIG
         self.selectedPwdID = None
@@ -60,12 +60,14 @@ class MainWindow(QtGui.QMainWindow):
         aboutAction.triggered.connect(self.onAbout)
         
         # menus
+        self.menuAct = []
         AccountMenu = self.menuBar().addMenu('&Account')
         for icon, name, tip, act in accMenuData:
             action = QtGui.QAction(QtGui.QIcon(icon), name, self)
             action.setStatusTip(tip)
             action.triggered.connect(act)
             if name == '&Quit': action.setShortcut('Ctrl+Q')
+            self.menuAct.append(action)
             AccountMenu.addAction(action)
         
         SettingMenu = self.menuBar().addMenu('&Setting')
@@ -73,6 +75,7 @@ class MainWindow(QtGui.QMainWindow):
             action = QtGui.QAction(QtGui.QIcon(icon), name, self)
             action.setStatusTip(tip)
             action.triggered.connect(act)
+            self.menuAct.append(action)
             SettingMenu.addAction(action)
         
         HelpMenu = self.menuBar().addMenu('&Help')
@@ -97,6 +100,7 @@ class MainWindow(QtGui.QMainWindow):
                         [myGui.ICON_TOOLBAR_SEARCH, 'Search', 'Search', self.onSearch],
                         ['', 'Separator', '', None],
                         [myGui.ICON_TOOLBAR_QUIT, 'Quit', 'Quit Password Manager', self.onQuit] ]
+        self.toolbarAct = []
         for icon, name, tip, act in toolbarData:
             action = QtGui.QAction(QtGui.QIcon(icon), name, self)
             if name == 'Separator': self.toolbar.addSeparator()
@@ -104,22 +108,15 @@ class MainWindow(QtGui.QMainWindow):
                 self.searchBox = QtGui.QLineEdit()
                 self.searchBox.setFixedWidth(300)
                 self.connect(self.searchBox, QtCore.SIGNAL('returnPressed()'), self.onSearch)
+                self.toolbarAct.append(action)
                 self.toolbar.addWidget(self.searchBox)
             else:
                 action.setStatusTip(tip)
                 action.triggered.connect(act)
+                self.toolbarAct.append(action)
                 self.toolbar.addAction(action)
     
     def createSplitter(self):
-        #self.listwidget = QtGui.QListWidget()
-        #self.listwidget.addItem("This\nis\na\nListWidget!")
-        #self.pwdCtrl = QtGui.QTableWidget()
-        #self.pwdCtrl.setColumnCount(4)
-        #self.pwdCtrl.setHorizontalHeaderLabels(['Tags', 'Title', 'Username', 'Description'])
-        
-        #self.treewidget = QtGui.QTreeWidget()
-        #self.treewidget.setHeaderLabels(['This','is','a','TreeWidgets!'])
-        
         splitter = QtGui.QSplitter(self)
         self.pwdCtrl = PwdList(self)
         self.tagCtrl = TagList(self)
@@ -127,7 +124,30 @@ class MainWindow(QtGui.QMainWindow):
         splitter.addWidget(self.pwdCtrl)
         splitter.setStretchFactor(1, myGui.SPLITTER_STRETCH_FACTOR)
         self.setCentralWidget(splitter)
-        #splitter.addWidget(self.treewidget)
+        
+    def enableBtns(self):
+        if self.selectedTagID == myGui.ID_TAG_TRASH: self.chgTrashTagButton(True)
+        else: self.chgButtonStatus(True)
+    
+    def disableBtns(self):
+        self.chgTrashTagButton(False)
+        self.chgButtonStatus(False)
+    
+    def chgTrashTagButton(self, status):
+        for act in self.toolbarAct:
+            if act.text() in myGui.NAMES_TRASHTAG_TOOLBAR:
+                act.setEnabled(status)
+        for act in self.menuAct:
+            if act.text() in myGui.NAMES_TRASHTAG_MENU:
+                act.setEnabled(status)
+    
+    def chgButtonStatus(self, status):
+        for act in self.toolbarAct:
+            if act.text() in myGui.NAMES_ENDISABLE_TOOLBAR:
+                act.setEnabled(status)
+        for act in self.menuAct:
+            if act.text() in myGui.NAMES_ENDISABLE_MENU:
+                act.setEnabled(status)
     
     # menu handlers
     def onNewAccount(self):
@@ -136,7 +156,13 @@ class MainWindow(QtGui.QMainWindow):
         self.reloadWindow()
     
     def onSearch(self):
-        myGui.showAboutDialog()
+        keyword = unicode(self.searchBox.text())
+        if len(keyword) == 0:
+            myGui.showErrorDialog(myGui.ERR_SEARCH_EMPTY)
+        else:
+            global SEARCHRESULT
+            SEARCHRESULT = self.pwdFunc.getSearchResult(keyword)
+            self.reloadWindow(myGui.ID_TAG_SEARCH)
     
     def onShowDetail(self):
         pass
@@ -163,7 +189,10 @@ class MainWindow(QtGui.QMainWindow):
         myGui.showAboutDialog()
     
     def onChgMasterPwd(self):
-        pass
+        masterDlg = ChgMasterPwdDlg(self)
+        masterDlg.onChg()
+        self.reloadWindow()
+        masterDlg.destroy()
     
     def onNewTag(self):
         newTagDlg = NewTagDlg(self)
@@ -203,24 +232,27 @@ class TagList(QtGui.QListWidget):
     def __init__(self, parent):
         super(TagList, self).__init__()
         self.parent = parent
+        self.installEventFilter(self)
         self.initUI()
+        
+    def mousePressEvent(self, event):
+        if event.button() in [QtCore.Qt.LeftButton, QtCore.Qt.RightButton]:
+            item = self.itemAt(event.pos())
+            if not item: self.clearSelection()
+            else: self.setCurrentItem(item)
     
     def initUI(self):
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.tagMenu)
-        #self.connect(self, QtCore.SIGNAL('currentRowChanged(int)'), self.onSelect)
-        #QtGui.QListWidget.itemClicked
-        self.connect(self, QtCore.SIGNAL('itemClicked()'), self.onSelect)
+        self.connect(self, QtCore.SIGNAL('currentRowChanged(int)'), self.onSelect)
         self.loadTags()
-    
+        
     def tagMenu(self):
         self.menu = QtGui.QMenu()
         menuData = [[myGui.ICON_MENU_NEWTAG, 'Add new tag', 'Add new tag', self.parent.onNewTag],
                     [myGui.ICON_MENU_EDIT, 'Edit tag', 'Edit tag', self.parent.onEditTag],
                     [myGui.ICON_MENU_DELTAG, 'Delete tag', 'Delete tag', self.parent.onRemoveTag] ]
         cur = self.itemAt(self.mapFromGlobal(QtGui.QCursor.pos()))
-        #cnt = self.count()
-        #popup = menuData[:1] if cur + 3 <=cnt else menuData
         popup = menuData[:1] if (not cur or cur.type()<0) else menuData
         for icon, name, tip, act in popup:
             action = QtGui.QAction(QtGui.QIcon(icon), name, self)
@@ -228,7 +260,6 @@ class TagList(QtGui.QListWidget):
             action.triggered.connect(act)
             self.menu.addAction(action)
         self.menu.exec_(QtGui.QCursor.pos())
-        
     
     def loadTags(self, selectedID=myGui.ID_TAG_ALL):
         pwdFunc = PwdFunc()
@@ -248,14 +279,14 @@ class TagList(QtGui.QListWidget):
             self.addItem(item)
 
         tagAdv = [ QtGui.QListWidgetItem(QtGui.QIcon(myGui.ICON_TAG_ALL), 'All (%d)' % allPwdCnt, None, myGui.ID_TAG_ALL),
-                   QtGui.QListWidgetItem(QtGui.QIcon(myGui.ICON_TAG_SEARCH), 'Result (%d)' % len(self.parent.searchResult), None, myGui.ID_TAG_SEARCH),
+                   QtGui.QListWidgetItem(QtGui.QIcon(myGui.ICON_TAG_SEARCH), 'Result (%d)' % len(SEARCHRESULT), None, myGui.ID_TAG_SEARCH),
                    QtGui.QListWidgetItem(QtGui.QIcon(myGui.ICON_TAG_TRASH), 'Trash (%d)' % trashPwdCnt, None, myGui.ID_TAG_TRASH) ]
         for tagItem in tagAdv:
             tagItem.setSizeHint(QtCore.QSize(60, 32))
             self.addItem(tagItem)
         idxData.extend([-1, -2, -3])
         self.setCurrentRow(idxData.index(selectedID))
-        self.show()
+        #self.show()
         
     def onSelect(self):
         cur = self.currentItem()
@@ -267,7 +298,8 @@ class TagList(QtGui.QListWidget):
         if tagID == myGui.ID_TAG_SEARCH:
             pwdCtrl.loadSearchResult()
         else:
-            self.parent.pwdList = pwdFunc.getPwdListFromTagID(tagID)
+            global PWDLIST
+            PWDLIST = pwdFunc.getPwdListFromTagID(tagID)
             pwdCtrl.loadPwd()
 
 class PwdList(QtGui.QTableWidget):
@@ -276,25 +308,89 @@ class PwdList(QtGui.QTableWidget):
         self.parent = parent
         self.initUI()
     
+    def mousePressEvent(self, event):
+        if event.button() in [QtCore.Qt.LeftButton]:#, QtCore.Qt.RightButton]:
+            item = self.itemAt(event.pos())
+            if not item:
+                self.clearSelection()
+                self.onDeselect()
+            else:
+                self.setCurrentItem(item)
+                self.onSelect()
+    
     def initUI(self):
+        # display format
+        self.setEditTriggers(QtGui.QTableWidget.NoEditTriggers)
+        self.setSelectionBehavior(QtGui.QTableWidget.SelectRows)
+        self.setSelectionMode(QtGui.QTableWidget.SingleSelection)
+        self.setAlternatingRowColors(True)
+        self.horizontalHeader().setStretchLastSection(True)
+        self.horizontalHeader().setFixedHeight(25)
+        self.verticalHeader().setVisible(False)
+        
+        # context menu
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.pwdMenu)
         self.loadPwd()
         
+    def pwdMenu(self):
+        self.menu = QtGui.QMenu()
+        menuData = [ [myGui.ICON_MENU_ADD, 'Add new account', 'Add new account', self.parent.onNewAccount],
+                     [myGui.ICON_MENU_DETAIL, 'Account details', 'Show detailed information of selected account', self.parent.onShowDetail],
+                     [myGui.ICON_MENU_EDIT, 'Edit account', 'Edit the selected account', self.parent.onEditAccount],
+                     [myGui.ICON_MENU_PASTE, 'Copy password to clipboard', 'Copy decrypted password of selected account to clipboard', self.parent.onCopyPassword],
+                     [myGui.ICON_MENU_TRASH, 'Move to trash', 'Move selected account to trash', self.parent.onRemove],
+                     [myGui.ICON_MENU_REMOVE, 'Delete from trash', 'Delete selected account from trash', self.parent.onRemove],
+                     [myGui.ICON_MENU_RECOVER, 'Recover from trash', 'Recover selected account from trash', self.parent.onRecover] ]
+        popup = []
+        # position fix
+        p = self.mapFromGlobal(QtGui.QCursor.pos())
+        p.setX(p.x() - 25)
+        p.setY(p.y() - 25)
+        cur = self.itemAt(p)
+        if self.parent.selectedTagID not in [myGui.ID_TAG_TRASH, myGui.ID_TAG_SEARCH]:
+            popup = menuData[1:-2] if cur != None else menuData[:1]
+        elif self.parent.selectedTagID == myGui.ID_TAG_TRASH and cur != None: popup = menuData[-2:]
+        for icon, name, tip, act in popup:
+            action = QtGui.QAction(QtGui.QIcon(icon), name, self)
+            action.setStatusTip(tip)
+            action.triggered.connect(act)
+            self.menu.addAction(action)
+        self.menu.exec_(QtGui.QCursor.pos())
+    
+    def onSelect(self):
+        row = self.currentRow()
+        self.parent.selectedPwdID = self.pwdIdx[row]
+        self.parent.enableBtns()
+    
+    def onDeselect(self):
+        self.parent.selectedPwdID = None
+        self.parent.disableBtns()
+    
+        
     def loadSearchResult(self):
-        pass
+        global PWDLIST
+        PWDLIST = SEARCHRESULT
+        self.loadPwd()
     
     def loadPwd(self):
         self.clear()
+        self.onDeselect()
+        self.setRowCount(0)
         self.setColumnCount(4)
         self.setHorizontalHeaderLabels(['Tags', 'Title', 'Username', 'Description'])
-        wid = [200, 150, 200, 250]
+        wid = [200, 150, 200]
         for cid, wid in enumerate(wid): self.setColumnWidth(cid, wid)
         
         tagFunc = TagFunc()
-        for idx, pwd in enumerate(self.parent.pwdList):
+        self.pwdIdx = []
+        for idx, pwd in enumerate(PWDLIST):
+            row = self.rowCount()
+            self.insertRow(row)
             tags = pwd.tags
             tagStr = tagFunc.getTagNameString(tags)
-            self.setItem(idx, 0, QtGui.QTableWidgetItem(tagStr))
-            self.setItem(idx, 1, QtGui.QTableWidgetItem(pwd.title))
-            self.setItem(idx, 2, QtGui.QTableWidgetItem(pwd.username))
-            self.setItem(idx, 3, QtGui.QTableWidgetItem(pwd.description))
-        
+            self.setItem(idx, 0, QtGui.QTableWidgetItem(tagStr, 1))
+            self.setItem(idx, 1, QtGui.QTableWidgetItem(pwd.title, 1))
+            self.setItem(idx, 2, QtGui.QTableWidgetItem(pwd.username, 1))
+            self.setItem(idx, 3, QtGui.QTableWidgetItem(pwd.description, 1))
+            self.pwdIdx.append(pwd.id)
