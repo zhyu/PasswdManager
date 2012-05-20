@@ -11,8 +11,8 @@ def login():
 
 def main():
     app = QtGui.QApplication(sys.argv)
-    win = MainWindow()
     if login(): 
+        win = MainWindow()
         win.show()
         sys.exit(app.exec_())
     
