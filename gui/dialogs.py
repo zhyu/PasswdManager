@@ -9,6 +9,9 @@ from Ui_LoginDlg import Ui_LoginDlg
 from Ui_NewTagDlg import Ui_NewTagDlg
 from Ui_EditTagDlg import Ui_EditTagDlg
 from Ui_ChgMasterPwdDlg import Ui_ChgMasterPwdDlg
+from Ui_NewAccountDlg import Ui_NewAccountDlg
+from Ui_EditAccountDlg import Ui_EditAccountDlg
+from Ui_AccountDetailDlg import Ui_AccountDetailDlg
 
 RETRY = 5
 
@@ -48,33 +51,161 @@ class LoginDlg(QtGui.QDialog, Ui_LoginDlg):
                 return True
         else:
             return False
+ 
+class AccountDetailDlg(QtGui.QDialog, Ui_AccountDetailDlg):
+    def __init__(self, parent, pwdID):
+        QtGui.QDialog.__init__(self, parent)
+        self.setupUi(self)
+        self.parent = parent
+        self.pwdID = pwdID
+        self.pwdFunc = PwdFunc()
+        self.tagFunc = TagFunc()
+        self.accountObj = self.pwdFunc.getPwdByID(self.pwdID)
+        self.loadData()
         
-class AccountDetailDialog(QtGui.QDialog):
-    '''
-    show account detail (read only)
-    '''
-    pass
-
-class EditAccountDialog(QtGui.QDialog):
-    pass
-
-class NewPwdDialog(QtGui.QDialog):
-    '''
-    dialog about add new password
-    '''
+    def loadData(self):
+        acc = self.accountObj
+        self.title.setText(acc.title)
+        self.account.setText(acc.username)
+        self.tags.setText(self.tagFunc.getTagNameString(acc.tags))
+        self.cTime.setText(acc.createDate)
+        self.uTime.setText(acc.lastUpdate)
+        self.description.setPlainText(acc.description)
+        
+    @pyqtSignature("bool")
+    def on_checkBox_toggled(self, checked):
+        self.showHidePwd()
     
-    def __init__(self, parent):
-        super(NewPwdDialog, self).__init__()
-        self.initUI()
+    @pyqtSignature("")
+    def on_editBtn_clicked(self):
+        self.accept()
+        self.parent.onEditAccount()
     
-    def initUI(self):
-        pass
+    def showHidePwd(self):
+        if self.checkBox.isChecked(): # show
+            self.password.setStyleSheet('')
+            self.secret.setStyleSheet('')
+            self.password.setText(util.decrypt(config.getMasterPwd(), self.accountObj.pwd))
+            self.secret.setPlainText(util.decrypt(config.getMasterPwd(), self.accountObj.secret).decode('utf-8') if self.accountObj.secret else '')
+        else: # hide
+            self.password.setStyleSheet("background-color: black; color: rgb(192, 0, 0);")
+            self.secret.setStyleSheet("background-color: black; color: rgb(192, 0, 0);")
+            self.password.setText(myGui.INFO_HIDE_TXT)
+            self.secret.setPlainText(myGui.INFO_HIDE_TXT)
+       
+class EditAccountDlg(QtGui.QDialog, Ui_EditAccountDlg):
+    def __init__(self, parent, pwdID):
+        QtGui.QDialog.__init__(self, parent)
+        self.setupUi(self)
+        self.pwdID = pwdID
+        self.pwdFunc = PwdFunc()
+        self.accountObj = self.pwdFunc.getPwdByID(self.pwdID)
+        self.loadTags()
+        self.loadData()
+        self.show()
+    
+    def loadData(self):
+        acc = self.accountObj
+        self.title.setText(acc.title)
+        self.description.setPlainText(acc.description)
+        self.account.setText(acc.username)
+        self.secret.setPlainText(util.decrypt(config.getMasterPwd(), acc.secret).decode('utf-8') if acc.secret else '')
+        tagName = [tag.name for tag in acc.tags]
+        cnt = self.tags.count()
+        for idx in xrange(cnt):
+            if unicode(self.tags.item(idx).text()) in tagName:
+                self.tags.item(idx).setSelected(True)
     
     def loadTags(self):
-        pass
+        self.tags.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        tagFunc = TagFunc()
+        tagList = tagFunc.getAllTags()
+        self.tagIDList = []
+        for idx, tag in enumerate(tagList):
+            self.tags.addItem(QtGui.QListWidgetItem(tag.name))
+            self.tagIDList.append(tag.id)
+    
+    def onSave(self):
+        val = self.exec_()
+        if val:
+            if len(unicode(self.title.text())) == 0:
+                myGui.showErrorDialog(myGui.ERR_TITLE_EMPTY)
+                self.title.setFocus()
+                self.onSave()
+            elif len(unicode(self.account.text())) == 0:
+                myGui.showErrorDialog(myGui.ERR_ACCOUNT_EMPTY)
+                self.account.setFocus()
+                self.onSave()
+            elif not self.pwdFunc.isTitleNameValid(unicode(self.title.text()), self.pwdID):
+                myGui.showErrorDialog(myGui.ERR_ACCOUNTTITLE_UNIQUE)
+                self.title.setFocus()
+                self.onSave()
+            else:
+                nTitle = unicode(self.title.text())
+                nDescription = unicode(self.description.toPlainText())
+                nAccount = unicode(self.account.text())
+                nPassword = unicode(self.password.text()) if len(unicode(self.password.text())) > 0 else None
+                nSecret = unicode(self.secret.toPlainText()).encode('utf-8')
+                nTagIDs = []
+                cnt = self.tags.count()
+                for idx in xrange(cnt):
+                    if self.tags.item(idx).isSelected():
+                        nTagIDs.append(self.tagIDList[idx])
+                self.pwdFunc.updateAccount(self.pwdID, nTitle, nDescription, nAccount, nPassword, nSecret, nTagIDs)
+
+class NewAccountDlg(QtGui.QDialog, Ui_NewAccountDlg):
+    def __init__(self, parent):
+        QtGui.QDialog.__init__(self, parent)
+        self.parent = parent
+        self.setupUi(self)
+        self.loadTags()
+
+    def loadTags(self):
+        self.tags.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        tagFunc = TagFunc()
+        tagList = tagFunc.getAllTags()
+        self.tagIDList = []
+        for idx, tag in enumerate(tagList):
+            self.tags.addItem(QtGui.QListWidgetItem(tag.name))
+            self.tagIDList.append(tag.id)
+            # select the current selected tag if not in ALL or Trash
+            selelectedTagID = self.parent.selectedTagID
+            if tag.id == selelectedTagID and selelectedTagID >= 0:
+                self.tags.item(idx).setSelected(True)
     
     def doSave(self):
-        pass
+        pwdFunc = PwdFunc()
+        var = self.exec_()
+        if var:
+            if len(unicode(self.title.text())) == 0:
+                myGui.showErrorDialog(myGui.ERR_TITLE_EMPTY)
+                self.title.setFocus()
+                self.doSave()
+            elif len(unicode(self.account.text())) == 0:
+                myGui.showErrorDialog(myGui.ERR_ACCOUNT_EMPTY)
+                self.account.setFocus()
+                self.doSave()
+            elif len(unicode(self.password.text())) == 0:
+                myGui.showErrorDialog(myGui.ERR_PWD_EMPTY)
+                self.password.setFocus()
+                self.doSave()
+            elif not pwdFunc.isTitleNameValid(unicode(self.title.text())):
+                myGui.showErrorDialog(myGui.ERR_ACCOUNTTITLE_UNIQUE)
+                self.title.setFocus()
+                self.doSave()
+            else:
+                nTitle = unicode(self.title.text())
+                nDescription = unicode(self.description.toPlainText())
+                nAccount = unicode(self.account.text())
+                nPassword = unicode(self.password.text())
+                nSecret = unicode(self.secret.toPlainText()).encode('utf-8')
+                nTagIDs = []
+                cnt = self.tags.count()
+                for idx in xrange(cnt):
+                    if self.tags.item(idx).isSelected():
+                        nTagIDs.append(self.tagIDList[idx])
+                pwdFunc.addAccount(nTitle, nDescription, nAccount, nPassword, nSecret, nTagIDs)
+                
     
 class ChgMasterPwdDlg(QtGui.QDialog, Ui_ChgMasterPwdDlg):
     def __init__(self, parent = None):
