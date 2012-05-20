@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-#splitter.addWidget(self.treewidget)
 
 import config, myGui, util, sys
 from func import PwdFunc, TagFunc
@@ -151,7 +150,7 @@ class MainWindow(QtGui.QMainWindow):
     
     # menu handlers
     def onNewAccount(self):
-        dlg = NewPwdDialog(self)
+        dlg = NewAccountDlg(self)
         dlg.doSave()
         self.reloadWindow()
     
@@ -165,22 +164,57 @@ class MainWindow(QtGui.QMainWindow):
             self.reloadWindow(myGui.ID_TAG_SEARCH)
     
     def onShowDetail(self):
-        pass
+        dlg = AccountDetailDlg(self, self.selectedPwdID)
+        dlg.exec_()
+        dlg.destroy()
     
     def onEditAccount(self):
-        pass
+        dlg = EditAccountDlg(self, self.selectedPwdID)
+        dlg.onSave()
+        self.reloadWindow()
+        dlg.destroy()
     
     def onCopyPassword(self):
-        pass
+        account = self.pwdFunc.getPwdByID(self.selectedPwdID)
+        # decrypt password
+        dePwd = util.decrypt(config.getMasterPwd(), account.pwd)
+        clipboard = QtGui.QApplication.clipboard()
+        clipboard.setText(dePwd)
+        myGui.showInfoDialog(myGui.INFO_CLIPBOARD, account.title)
     
     def onEmptyTrash(self):
-        pass
+        if myGui.showConfirmationDialog(myGui.CONFIRM_EMPTY_TRASH) == QtGui.QMessageBox.Ok:
+            self.pwdFunc.emptyTrash()
+            self.reloadWindow()
     
     def onRecover(self):
-        pass
+        account = self.pwdFunc.getPwdByID(self.selectedPwdID)
+        self.pwdFunc.recoverFromTrash(account.id)
+        self.reloadWindow()
+        myGui.showInfoDialog(myGui.INFO_RECOVERED, account.title)
     
     def onRemove(self):
-        pass
+        '''
+        if the currentTag is not Trash, move the selected accouont to Trash. Otherwise remove the account.
+        '''
+        account = self.pwdFunc.getPwdByID(self.selectedPwdID)
+        
+        if self.selectedTagID == myGui.ID_TAG_TRASH:
+            if myGui.showConfirmationDialog(myGui.CONFIRM_COMPLETE_REMOVE, account.title) == QtGui.QMessageBox.Ok:
+                self.pwdFunc.deleteAccount(account.id)
+                self.reloadWindow(self.selectedTagID)
+        else:
+            if myGui.showConfirmationDialog(myGui.CONFIRM_MOVETO_TRASH, account.title) == QtGui.QMessageBox.Ok:
+                self.pwdFunc.moveToTrash(account.id)
+                
+                # if the currentTag is SearchResult, SearchList need to be maintained.
+                if self.selectedTagID == myGui.ID_TAG_SEARCH:
+                    global SEARCHRESULT
+                    for pwd in SEARCHRESULT:
+                        if pwd.id == account.id:
+                            SEARCHRESULT.remove(pwd)
+                            break
+                self.reloadWindow(self.selectedTagID)
     
     def onQuit(self):
         self.close()
@@ -205,7 +239,6 @@ class MainWindow(QtGui.QMainWindow):
         editTagDlg.onSave()
         self.reloadWindow()
         editTagDlg.destroy()
-        pass
     
     def onRemoveTag(self):
         tag = self.tagFunc.getTagByID(self.selectedTagID)
@@ -224,9 +257,8 @@ class MainWindow(QtGui.QMainWindow):
     
     def reloadWindow(self, selectedTag=None):
         if not selectedTag:
-            self.tagCtrl.loadTags()
-        else:
-            self.tagCtrl.loadTags(selectedTag)
+            selectedTag = myGui.ID_TAG_ALL
+        self.tagCtrl.loadTags(selectedTag)
     
 class TagList(QtGui.QListWidget):
     def __init__(self, parent):
@@ -309,7 +341,7 @@ class PwdList(QtGui.QTableWidget):
         self.initUI()
     
     def mousePressEvent(self, event):
-        if event.button() in [QtCore.Qt.LeftButton]:#, QtCore.Qt.RightButton]:
+        if event.button() in [QtCore.Qt.LeftButton, QtCore.Qt.RightButton]:
             item = self.itemAt(event.pos())
             if not item:
                 self.clearSelection()
@@ -348,9 +380,9 @@ class PwdList(QtGui.QTableWidget):
         p.setX(p.x() - 25)
         p.setY(p.y() - 25)
         cur = self.itemAt(p)
-        if self.parent.selectedTagID not in [myGui.ID_TAG_TRASH, myGui.ID_TAG_SEARCH]:
+        if self.parent.selectedTagID != myGui.ID_TAG_TRASH:
             popup = menuData[1:-2] if cur != None else menuData[:1]
-        elif self.parent.selectedTagID == myGui.ID_TAG_TRASH and cur != None: popup = menuData[-2:]
+        elif cur != None: popup = menuData[-2:]
         for icon, name, tip, act in popup:
             action = QtGui.QAction(QtGui.QIcon(icon), name, self)
             action.setStatusTip(tip)
