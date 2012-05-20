@@ -258,7 +258,7 @@ class PwdDao():
     def setTagsOnAccount(self, accountID, tagIDs):
         sql = """ INSERT INTO PWDTAGJOIN (pwdid, tagid) VALUES (?, ?) """
         cur = self.conn.cursor()
-        for tag in tagIDs:
+        for tagID in tagIDs:
             cur.execute(sql, (accountID, tagID))
         cur.close()
     
@@ -328,7 +328,7 @@ class PwdDao():
         cur.close()
         return res
     
-    def isAccountNameValid(self, name, ID=-1):
+    def isTitleNameValid(self, name, ID=-1):
         cur = self.conn.cursor()
         if ID == -1:
             sql = """ SELECT id FROM ACCOUNT WHERE title=? """
