@@ -52,39 +52,9 @@ ICON_MENU_PWDGEN =ICON_ROOT + 'pwdgen16.png'
 # Application window size,position
 MAIN_WINDOW_SIZE=(1100,700)
 MAIN_WINDOW_POSITION=(100,80)
-# Dialog position is needed for windows platform.
-DIALOG_POSITION=(270,150)
-
-# Long Textbox
-SIZE_LONG_TEXT=(300,28)
-SIZE_NORMAL_TEXT=(200,28)
-SIZE_MULTILINE_TEXT=(400,100)
-
-# textbox in create/edit/detail dialog. keeping same length with multilineTextBox
-SIZE_DETAIL_TEXT= (400,28) 
-SIZE_SECRET_TEXT= (400,200) 
-
-# Dialog
-SIZE_DIALOG_LOGIN = (400, 130)
-SIZE_DIALOG_NEWACCOUNT = (900, 610)
-SIZE_DIALOG_EDITACCOUNT = (900,610)
-SIZE_DIALOG_ACCOUNTDETAIL = (650,680)
-SIZE_DIALOG_CHGMASTERPWD = (500, 240)   
-SIZE_DIALOG_PWDGEN = (520, 360)      
-
-# splitterwindow min pane size
-SPLITTERWINDOW_MIN_SIZE = 100 
 
 # splitter stretch factor
 SPLITTER_STRETCH_FACTOR = 200 
-
-
-##################################
-# GUI Window name
-##################################
-TAG_LIST_NAME = 'tagListCtrl'
-PWD_LIST_NAME = 'pwdListCtrl'
-NAME_TEXTBOX_SEARCH = 'searchTextBox'
 
 ##################################
 # special tag id
@@ -110,12 +80,9 @@ ID_MENU_QUIT        = 7666
 
 #enable/disable NAMEs
 NAMES_ENDISABLE_MENU = ['Account &Details', '&Edit Account', '&Move to Trash']
-
 NAMES_ENDISABLE_TOOLBAR = ['Account Details', 'Edit Account', 'Move to Trash']
-
 NAMES_TRASHTAG_MENU = ['Re&cover from trash', '&Remove Selected Account']
 NAMES_TRASHTAG_TOOLBAR = ['Recover from trash', 'Remove Selected Account']
-
 
 ##################################
 # Information messages
