@@ -48,7 +48,7 @@ class MasterFunc(Func):
         
         # 1st re-encrypt all passwords with the new master password
         accountList = pDao.getAllPwd()
-        currentDate = datetime.datetime.today()
+        currentDate = unicode(datetime.datetime.today())
         for account in accountList:
             dePwd = util.decrypt(oldPwd, account.pwd)
             enPwd = util.encrypt(newPwd, dePwd)
@@ -62,11 +62,7 @@ class MasterFunc(Func):
             deUsername = util.decrypt(oldPwd, account.username)
             enUsername = util.encrypt(newPwd, deUsername)
             
-            account.pwd = enPwd
-            account.username = enUsername
-            account.secret = enSecret
-            account.lastupdate = currentDate
-            pDao.updateAccount(account.id, account.title, account.description, account.username, account.password, account.secret, account.lastupdate)
+            pDao.updateAccount(account.id, account.title, account.description, enUsername, enPwd, enSecret, currentDate) 
         
         # 2nd get md5 of new master password, update the masterpassword table
         newMD5String = util.md5Encoding(newPwd)
