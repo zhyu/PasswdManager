@@ -43,7 +43,8 @@ def encrypt(key, msg):
     obj = __getKeyObject(key)
     
     # encrypt
-    cipher = obj.encrypt(msg*16)
+    xx = msg*16
+    cipher = obj.encrypt(xx)
     
     # convert bin to string
     s = binascii.b2a_hex(cipher)
