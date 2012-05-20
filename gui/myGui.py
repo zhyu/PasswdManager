@@ -108,14 +108,13 @@ ID_MENU_RECOVER     = 7668
 ID_MENU_EDIT        = 7667
 ID_MENU_QUIT        = 7666
 
-#enable/disable IDs
-IDS_ENDISABLE_MENU = (ID_MENU_DETAIL,ID_MENU_TRASH,ID_MENU_EDIT)
+#enable/disable NAMEs
+NAMES_ENDISABLE_MENU = ['Account &Details', '&Edit Account', '&Move to Trash']
 
-IDS_ENDISABLE_TOOLBAR = (ID_TOOLBAR_DETAIL,
-                         ID_TOOLBAR_TRASH,ID_TOOLBAR_EDIT)
+NAMES_ENDISABLE_TOOLBAR = ['Account Details', 'Edit Account', 'Move to Trash']
 
-IDS_TRASHTAG_MENU = (ID_MENU_REMOVE,ID_MENU_RECOVER)
-IDS_TRASHTAG_TOOLBAR = (ID_TOOLBAR_REMOVE,ID_TOOLBAR_RECOVER)
+NAMES_TRASHTAG_MENU = ['Re&cover from trash', '&Remove Selected Account']
+NAMES_TRASHTAG_TOOLBAR = ['Recover from trash', 'Remove Selected Account']
 
 
 ##################################
