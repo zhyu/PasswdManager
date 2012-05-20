@@ -142,7 +142,7 @@ class PwdFunc(Func):
         
         conn = self.getConnection()
         pDao = PwdDao(conn)
-        pwdObj = PwdDao.getPwdByID(id)
+        pwdObj = pDao.getPwdByID(id)
         mPwd = config.getMasterPwd()
         
         eUsername = util.encrypt(mPwd, username) if username else ''
@@ -233,10 +233,10 @@ class PwdFunc(Func):
         conn.commit()
         conn.close()
     
-    def isAccountNameValid(self, name, ID=-1):
+    def isTitleNameValid(self, name, ID=-1):
         conn = self.getConnection()
         pDao = PwdDao(conn)
-        res = pDao.isAccountNameValid(name, ID)
+        res = pDao.isTitleNameValid(name, ID)
         conn.close()
         return res
 
@@ -307,12 +307,12 @@ class TagFunc(Func):
         return res
     
     def getTagNameString(self, tags):
-        tagStr = '<'
+        tagStr = ''
         for tag in tags:
             if tag:
                 tagStr += tag.name
                 if tag != tags[-1]:
                     tagStr += '> <'
-        tagStr += '>'
+        if tagStr != '': tagStr = '<' +tagStr + '>'
         return tagStr
     
