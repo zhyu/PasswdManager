@@ -8,6 +8,7 @@ from Ui_PwdGenDlg import Ui_PwnGenDlg
 from Ui_LoginDlg import Ui_LoginDlg
 from Ui_NewTagDlg import Ui_NewTagDlg
 from Ui_EditTagDlg import Ui_EditTagDlg
+from Ui_ChgMasterPwdDlg import Ui_ChgMasterPwdDlg
 
 RETRY = 5
 
@@ -74,9 +75,40 @@ class NewPwdDialog(QtGui.QDialog):
     
     def doSave(self):
         pass
-
-class ChgMasterPwdDialog(QtGui.QDialog):
-    pass
+    
+class ChgMasterPwdDlg(QtGui.QDialog, Ui_ChgMasterPwdDlg):
+    def __init__(self, parent = None):
+        QtGui.QDialog.__init__(self, parent)
+        self.setupUi(self)
+        
+    def onChg(self):
+        pwdFunc = PwdFunc()
+        masterFunc = MasterFunc()
+        
+        self.oldPwd.setFocus()
+        val = self.exec_()
+        if val:
+            if len(unicode(self.oldPwd.text())) < 5 or len(unicode(self.oldPwd.text())) > 16:
+                myGui.showErrorDialog(myGui.ERR_MASTERPWD_LEN)
+                self.oldPwd.setFocus()
+                self.onChg()
+            elif len(unicode(self.newPwd.text())) < 5 or len(unicode(self.newPwd.text())) > 16:
+                myGui.showErrorDialog(myGui.ERR_MASTERPWD_LEN)
+                self.newPwd.setFocus()
+                self.onChg()
+            elif unicode(self.newPwd.text()) != unicode(self.newPwd2.text()):
+                myGui.showErrorDialog(myGui.ERR_NEWMASTER_IDENTICAL)
+                self.newPwd.clear()
+                self.newPwd2.clear()
+                self.newPwd.setFocus()
+                self.onChg()
+            elif unicode(self.oldPwd.text()) != config.getMasterPwd():
+                myGui.showErrorDialog(myGui.ERR_OLDMASTER_WRONG)
+                self.oldPwd.setFocus()
+                self.onChg()
+            else:
+                masterFunc.changeMasterPwd(unicode(self.newPwd.text()))
+                myGui.showInfoDialog(myGui.INFO_MASTERPWD)
 
 class PwdGenDlg(QtGui.QDialog, Ui_PwnGenDlg):
     def __init__(self, parent):
